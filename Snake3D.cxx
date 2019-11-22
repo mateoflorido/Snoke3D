@@ -23,6 +23,8 @@ Camera myCamera;
 SpatialObject *myStar = nullptr;
 Snake *mySnake = nullptr;
 Scenary *myScenary = nullptr;
+int points = 0;
+int width, height;
 
 float rotA = 0;
 float dx = 1;
@@ -90,6 +92,7 @@ void mouseClickCbk(int button, int state, int x, int y);
 void mouseMoveCbk(int x, int y);
 void RotateSnake(int change);
 void CalcDeltas();
+void outputText(float x, float y, float r, float g, float b, void *font, const char *string);
 // -------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
@@ -99,7 +102,8 @@ int main(int argc, char *argv[])
   glutInitWindowPosition(50, 50);
   glutInitWindowSize(1024, 768);
   glutCreateWindow("Snake3D - FF Alpha 0.1");
-
+  width = 1024;
+  height = 768;
   // Init world
   try
   {
@@ -177,6 +181,25 @@ void destroyWorld(SpatialObject *star)
   if (star != nullptr)
     delete star;
 }
+// -------------------------------------------------------------------------
+void outputText(float x, float y, float r, float g, float b, void *font, const char *string)
+{
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  gluOrtho2D(0.0, width, height, 0.0);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  glColor3f(r, g, b);
+  glRasterPos2f(x, y);
+  glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)string);
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+}
+
 // -------------------------------------------------------------------------
 
 void rotateLights()
@@ -262,7 +285,9 @@ void displayCbk()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
   glShadeModel(GL_SMOOTH);
+  glCullFace(GL_BACK);
   sceneLights();
   glMatrixMode(GL_MODELVIEW);
 
@@ -287,6 +312,7 @@ void displayCbk()
 
   myScenary->DrawScenary();
   mySnake->Draw();
+  outputText(20.0, 20.0, 1.0, 1.0, 1.0, GLUT_BITMAP_HELVETICA_10, msg.c_str());
 
   // Finish
   glutSwapBuffers();
@@ -302,16 +328,14 @@ void idleCbk()
     std::cout << "FPS: " << fpsCounter << std::endl;
     fpsClock = std::chrono::high_resolution_clock::now();
     fpsCounter = 0;
-    std::cout << "Degrees: [" << rotA << "] Delta X: [" <<dx<< "] Delta Y: [" << dy << "]\n";
+    std::cout << "Degrees: [" << rotA << "] Delta X: [" << dx << "] Delta Y: [" << dy << "]\n";
     mySnake->Move(dx, dy);
     myCamera.forward(1);
-
   }
   else
   {
     fpsCounter++;
   }
-
   glutPostRedisplay();
 }
 
@@ -321,6 +345,8 @@ void resizeCbk(int w, int h)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   myCamera.setWindow(w, h);
+  width = w;
+  height = h;
   myCamera.loadProjectionMatrix();
 }
 // -------------------------------------------------------------------------
@@ -334,7 +360,7 @@ void RotateSnake(int change)
     }
     else
     {
-      rotA-=1;
+      rotA -= 1;
     }
   }
   if (change == 1)
@@ -345,7 +371,7 @@ void RotateSnake(int change)
     }
     else
     {
-      rotA+=1;
+      rotA += 1;
     }
   }
 }
@@ -354,25 +380,25 @@ void CalcDeltas()
 {
   if (rotA <= 90)
   {
-    dx = std::cos((90 - rotA)* _PI_180);
-    dy = std::sin((90 - rotA)* _PI_180);
+    dx = std::cos((90 - rotA) * _PI_180);
+    dy = std::sin((90 - rotA) * _PI_180);
   }
-  else if(rotA <= 180)
+  else if (rotA <= 180)
   {
-    float intAngle = 90-(180-rotA);
+    float intAngle = 90 - (180 - rotA);
     dx = std::cos(intAngle * _PI_180);
     dy = std::sin(intAngle * _PI_180) * -1;
   }
-  else if( rotA <=270 )
+  else if (rotA <= 270)
   {
     dx = std::cos((270 - rotA) * _PI_180) * -1;
-    dy = std::sin((270 - rotA )* _PI_180) * -1;
+    dy = std::sin((270 - rotA) * _PI_180) * -1;
   }
-  else if( rotA <= 360)
+  else if (rotA <= 360)
   {
-    float intAngle = 90-(360-rotA);
-    dx = std::cos(intAngle* _PI_180) * -1;
-    dy = std::sin(intAngle* _PI_180);
+    float intAngle = 90 - (360 - rotA);
+    dx = std::cos(intAngle * _PI_180) * -1;
+    dy = std::sin(intAngle * _PI_180);
   }
 }
 // -------------------------------------------------------------------------
@@ -445,7 +471,7 @@ void keyboardCbk(unsigned char key, int x, int y)
   case 'p':
   case 'P':
   {
-    myStar->startAnimation();
+    points++;
     glutPostRedisplay();
   }
   break;
