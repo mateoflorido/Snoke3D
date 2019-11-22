@@ -25,6 +25,7 @@ public:
     //@{
     void CreateLab(int offset);
     void DrawScenary();
+    bool CheckIntegrity(float x, float y);
 
     //@}
 protected:

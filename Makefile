@@ -1,7 +1,7 @@
 CXXFLAGS := -std=c++11 -g
 LIBS := -lm -lGL -lGLU -lglut
-HEADERS := Vector.h Camera.h Mesh.h SpatialObject.h Scenary.h
-OBJS := Snake3D.o Vector.o Camera.o Mesh.o SpatialObject.o Scenary.o
+HEADERS := Vector.h Camera.h Mesh.h SpatialObject.h Scenary.h Snake.h
+OBJS := Snake3D.o Vector.o Camera.o Mesh.o SpatialObject.o Scenary.o Snake.o
 
 all: Snake3D
 
