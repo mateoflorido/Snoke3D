@@ -25,6 +25,8 @@ public:
     //@{
     std::vector<float> Move(float dx, float dy);
     void Draw();
+    bool Eat(std::vector<float> fruit);
+    void Grow();
     //@}
 protected:
     std::string m_Name;

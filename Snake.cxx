@@ -59,6 +59,13 @@ std::vector<float> Snake::
 void Snake::
     Draw()
 {
+    GLfloat qaSnake[] = {0.20, 0.80, 0.20, 1.0};
+    GLfloat qaWhite[] = {0.0, 1.0, 0.76, 1.0};
+    GLfloat shininess[] = {60.0};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, qaSnake);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, qaSnake);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, qaWhite);
+    glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
     glPushMatrix();
     for (int i = 0; i < this->m_Body.size(); i += 2)
     {
@@ -69,7 +76,7 @@ void Snake::
         }
         else
         {
-            glColor3f(1.0, 1.0, 1.0);
+            glColor3fv(qaSnake);
         }
 
         glTranslatef(this->m_Body[i], this->m_Body[i + 1], 0);
@@ -77,6 +84,23 @@ void Snake::
         glPopMatrix();
     }
     glPopMatrix();
+}
+// -------------------------------------------------------------------------
+bool Snake::
+    Eat(std::vector<float> fruit)
+{
+    float distance = (this->m_Body[0] - fruit[0]) *
+                         (this->m_Body[0] - fruit[0]) +
+                     (this->m_Body[1] - fruit[1]) *
+                         (this->m_Body[0] - fruit[0]);
+    if (distance == 4)
+        return true;
+    else if (distance > 4)
+        return false;
+    else
+    {
+        return true;
+    }
 }
 
 // eof - Snake.cxx

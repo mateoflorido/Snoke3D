@@ -26,6 +26,7 @@ public:
     void CreateLab(int offset);
     void DrawScenary();
     bool CheckIntegrity(float x, float y);
+    std::vector<float> getBoundaries();
 
     //@}
 protected:

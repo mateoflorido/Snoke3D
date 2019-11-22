@@ -13,6 +13,7 @@
 #include "Snake.h"
 #include "Camera.h"
 #include "SpatialObject.h"
+#include "Fruit.h"
 
 // Aliases
 
@@ -23,12 +24,16 @@ Camera myCamera;
 SpatialObject *myStar = nullptr;
 Snake *mySnake = nullptr;
 Scenary *myScenary = nullptr;
+Fruit *currentFruit = nullptr;
+Fruit *specialFruit = nullptr;
+std::vector<float> boundaries;
+Clock fruitTimeout;
 int points = 0;
 int width, height;
 
 float rotA = 0;
-float dx = 1;
-float dy = 0;
+float dx = 0.0;
+float dy = 0.5;
 GLfloat light0Pos[] = {0.0, 0.0, 100.0, 1.0};
 GLfloat light0Amb[] = {0.2, 0.2, 0.2, 1.0};
 GLfloat light0Diff[] = {0.8, 0.8, 0.8, 1.0};
@@ -101,7 +106,7 @@ int main(int argc, char *argv[])
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   glutInitWindowPosition(50, 50);
   glutInitWindowSize(1024, 768);
-  glutCreateWindow("Snake3D - FF Alpha 0.1");
+  glutCreateWindow("Snake3D - FF Alpha 0.5");
   width = 1024;
   height = 768;
   // Init world
@@ -110,9 +115,22 @@ int main(int argc, char *argv[])
     //myStar = initWorld( argc, argv );
     mySnake = new Snake();
     myScenary = new Scenary();
+    boundaries = myScenary->getBoundaries();
+    currentFruit = new Fruit(0);
+    specialFruit = new Fruit();
+    currentFruit->Spawn(boundaries[0],
+                        boundaries[1],
+                        boundaries[2],
+                        boundaries[3]);
+    specialFruit->Spawn(boundaries[0],
+                        boundaries[1],
+                        boundaries[2],
+                        boundaries[3]);
+    fruitTimeout = std::chrono::high_resolution_clock::now();
     myCamera.rotY(-90);
     myCamera.rotZ(-90);
     myCamera.upward(2.5);
+    myCamera.forward(-5);
 
     glutDisplayFunc(displayCbk);
     glutIdleFunc(idleCbk);
@@ -193,7 +211,7 @@ void outputText(float x, float y, float r, float g, float b, void *font, const c
   glLoadIdentity();
   glColor3f(r, g, b);
   glRasterPos2f(x, y);
-  glutBitmapString(GLUT_BITMAP_TIMES_ROMAN_24, (const unsigned char *)string);
+  glutBitmapString(font, (const unsigned char *)string);
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
@@ -260,7 +278,7 @@ void sceneLights()
  
   glDisable (GL_LIGHTING);
  
-  glutWireCube (0.1);
+  glutWireCube (0.5);
  */
 
   glLightfv(GL_LIGHT1, GL_DIFFUSE, light1Diff);
@@ -302,16 +320,47 @@ void displayCbk()
 
   // Draw the scene
   //myStar->drawInOpenGLContext( GL_TRIANGLES );
-  GLfloat qaGreen[] = {0.0, 1.0, 0.0, 1.0};
+  GLfloat qaGrey[] = {0.74, 0.79, 0.85, 1.0};
   GLfloat qaWhite[] = {1.0, 1.0, 1.0, 1.0};
 
-  glMaterialfv(GL_FRONT, GL_AMBIENT, qaGreen);
-  glMaterialfv(GL_FRONT, GL_DIFFUSE, qaGreen);
+  glMaterialfv(GL_FRONT, GL_AMBIENT, qaGrey);
+  glMaterialfv(GL_FRONT, GL_DIFFUSE, qaGrey);
   glMaterialfv(GL_FRONT, GL_SPECULAR, qaWhite);
   glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
   myScenary->DrawScenary();
   mySnake->Draw();
+  if(mySnake->Eat(currentFruit->getCoordinates()))
+  {
+    points += currentFruit->getPoints();
+    delete (currentFruit);
+    currentFruit = new Fruit(0);
+    currentFruit->Spawn(boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
+
+  }
+  else if(mySnake->Eat(currentFruit->getCoordinates()))
+  {
+    points += specialFruit->getPoints();
+    fruitTimeout = std::chrono::high_resolution_clock::now();
+    //TODO LIGHTS WITH COLOR
+    delete (specialFruit);
+    specialFruit = new Fruit();
+    specialFruit->Spawn(boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
+  }
+  if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fruitTimeout).count() >= 15000)
+  {
+    fruitTimeout = std::chrono::high_resolution_clock::now();
+    delete (specialFruit);
+    specialFruit = new Fruit();
+    specialFruit->Spawn(boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
+  }
+  else
+  {
+    specialFruit->Draw();
+  }
+
+  currentFruit->Draw();
+  std::string msg = "Points: " + std::to_string(points);
   outputText(20.0, 20.0, 1.0, 1.0, 1.0, GLUT_BITMAP_HELVETICA_10, msg.c_str());
 
   // Finish
@@ -329,8 +378,8 @@ void idleCbk()
     fpsClock = std::chrono::high_resolution_clock::now();
     fpsCounter = 0;
     std::cout << "Degrees: [" << rotA << "] Delta X: [" << dx << "] Delta Y: [" << dy << "]\n";
+    myCamera.forward(0.5);
     mySnake->Move(dx, dy);
-    myCamera.forward(1);
   }
   else
   {
@@ -380,25 +429,25 @@ void CalcDeltas()
 {
   if (rotA <= 90)
   {
-    dx = std::cos((90 - rotA) * _PI_180);
-    dy = std::sin((90 - rotA) * _PI_180);
+    dx = std::cos((90 - rotA) * _PI_180) * 0.5;
+    dy = std::sin((90 - rotA) * _PI_180) * 0.5;
   }
   else if (rotA <= 180)
   {
     float intAngle = 90 - (180 - rotA);
-    dx = std::cos(intAngle * _PI_180);
-    dy = std::sin(intAngle * _PI_180) * -1;
+    dx = std::cos(intAngle * _PI_180) * 0.5;
+    dy = std::sin(intAngle * _PI_180) * -1 * 0.5;
   }
   else if (rotA <= 270)
   {
-    dx = std::cos((270 - rotA) * _PI_180) * -1;
-    dy = std::sin((270 - rotA) * _PI_180) * -1;
+    dx = std::cos((270 - rotA) * _PI_180) * -1 * 0.5;
+    dy = std::sin((270 - rotA) * _PI_180) * -1 * 0.5;
   }
   else if (rotA <= 360)
   {
     float intAngle = 90 - (360 - rotA);
-    dx = std::cos(intAngle * _PI_180) * -1;
-    dy = std::sin(intAngle * _PI_180);
+    dx = std::cos(intAngle * _PI_180) * -1 * 0.5;
+    dy = std::sin(intAngle * _PI_180) * 0.5;
   }
 }
 // -------------------------------------------------------------------------
@@ -426,7 +475,6 @@ void keyboardCbk(unsigned char key, int x, int y)
     RotateSnake(-1);
     CalcDeltas();
     myCamera.rotY(1);
-    mySnake->Move(dx, dy);
     glutPostRedisplay();
   }
   break;
@@ -436,7 +484,6 @@ void keyboardCbk(unsigned char key, int x, int y)
     RotateSnake(1);
     CalcDeltas();
     myCamera.rotY(-1);
-    mySnake->Move(dx, dy);
     glutPostRedisplay();
   }
   break;
@@ -488,68 +535,6 @@ void keyboardCbk(unsigned char key, int x, int y)
   default:
     break;
   } // end switch
-
-  /* TODO
-   void KeyDown(unsigned char key, int x, int y)
-   {
-   switch (key)
-   {
-   case 27:             //ESC
-   // PostQuitMessage(0);
-   break;
-   case 'a':
-   Camera.RotateY(5.0);
-   Display();
-   break;
-   case 'd':
-   Camera.RotateY(-5.0);
-   Display();
-   break;
-   case 'w':
-   Camera.MoveForward( -0.1 ) ;
-   Display();
-   break;
-   case 's':
-   Camera.MoveForward( 0.1 ) ;
-   Display();
-   break;
-   case 'x':
-   Camera.RotateX(5.0);
-   Display();
-   break;
-   case 'y':
-   Camera.RotateX(-5.0);
-   Display();
-   break;
-   case 'c':
-   Camera.StrafeRight(-0.1);
-   Display();
-   break;
-   case 'v':
-   Camera.StrafeRight(0.1);
-   Display();
-   break;
-   case 'f':
-   Camera.MoveUpward(-0.3);
-   Display();
-   break;
-   case 'r':
-   Camera.MoveUpward(0.3);
-   Display();
-   break;
-
-   case 'm':
-   Camera.RotateZ(-5.0);
-   Display();
-   break;
-   case 'n':
-   Camera.RotateZ(5.0);
-   Display();
-   break;
-
-   }
-   }
-*/
 }
 
 // -------------------------------------------------------------------------

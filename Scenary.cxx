@@ -90,6 +90,12 @@ DrawScenary( )
         
 }
 // -------------------------------------------------------------------------
+std::vector<float> Scenary::
+getBoundaries()
+{
+    return this->m_Boundaries;
+}
+// -------------------------------------------------------------------------
 bool Scenary::
 CheckIntegrity(float x, float y)
 {

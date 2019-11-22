@@ -5,7 +5,9 @@
 #define __Fruit__h__
 
 #include "Vector.h"
+#include <string>
 #include <chrono>
+#include <vector>
 
 /**
  */
@@ -24,6 +26,9 @@ public:
     //@{
     void Draw();
     void Spawn(float xmin, float xmax, float ymin, float ymax);
+    std::vector<float> getCoordinates();
+    int getPoints();
+    int getPowerClass();
     //@}
 protected:
     std::string m_Name;
