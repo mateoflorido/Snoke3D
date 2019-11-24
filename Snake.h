@@ -27,11 +27,15 @@ public:
     void Draw();
     bool Eat(std::vector<float> fruit);
     void Grow();
+    std::vector<float> getHead();
+    bool Die(float dx, float dy, std::vector<float>boundaries);
+    bool Itself();
     //@}
 protected:
     std::string m_Name;
     int m_Length;
     std::vector<float> m_Body; 
+    bool firstRun;
 };
 
 #endif // __Snake__h__

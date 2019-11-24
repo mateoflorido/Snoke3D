@@ -28,21 +28,26 @@ Fruit *currentFruit = nullptr;
 Fruit *specialFruit = nullptr;
 std::vector<float> boundaries;
 Clock fruitTimeout;
+bool play = false;
 int points = 0;
+float velocity = 1.0;
+bool mangoAct = false;
+bool guaranaAct = false;
+bool ancientAct = false;
 int width, height;
 
-float rotA = 0;
-float dx = 0.0;
-float dy = 0.5;
+float rotA = 90;
+float dx = 1.0;
+float dy = 0.0;
 GLfloat light0Pos[] = {0.0, 0.0, 100.0, 1.0};
 GLfloat light0Amb[] = {0.2, 0.2, 0.2, 1.0};
 GLfloat light0Diff[] = {0.8, 0.8, 0.8, 1.0};
 GLfloat light0Spec[] = {1.0, 1.0, 1.0, 1.0};
 
-GLfloat light1Pos[] = {10.0, 10.0, -10.0, 1.0};
-GLfloat light1Amb[] = {0.0, 1.0, 0.0, 1.0};
-GLfloat light1Diff[] = {0.0, 1.0, 0.0, 1.0};
-GLfloat light1Spec[] = {0.0, 1.0, 0.0, 1.0};
+GLfloat light1Pos[] = {0.0, 0.0, 100.0, 1.0};
+GLfloat light1Amb[] = {1.0, 1.0, 0.0, 1.0};
+GLfloat light1Diff[] = {1.0, 1.0, 0.0, 1.0};
+GLfloat light1Spec[] = {1.0, 1.0, 0.0, 1.0};
 
 GLfloat light2Pos[] = {10.0, -10.0, 10.0, 1.0};
 GLfloat light2Amb[] = {0.0, 0.0, 1.0, 1.0};
@@ -98,6 +103,7 @@ void mouseMoveCbk(int x, int y);
 void RotateSnake(int change);
 void CalcDeltas();
 void outputText(float x, float y, float r, float g, float b, void *font, const char *string);
+void EffectLights();
 // -------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
@@ -160,6 +166,7 @@ void initLights()
   glShadeModel(GL_FLAT);
   glEnable(GL_LIGHTING);
   glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT1);
   /*
    glEnable(GL_LIGHT1);
    glEnable(GL_LIGHT2);
@@ -280,10 +287,7 @@ void sceneLights()
  
   glutWireCube (0.5);
  */
-
-  glLightfv(GL_LIGHT1, GL_DIFFUSE, light1Diff);
-  glLightfv(GL_LIGHT1, GL_SPECULAR, light1Spec);
-  glLightfv(GL_LIGHT1, GL_SHININESS, light1Diff);
+  EffectLights();
   //glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, lightCutoff );
 
   glLightfv(GL_LIGHT2, GL_DIFFUSE, light2Diff);
@@ -297,7 +301,48 @@ void sceneLights()
   glEnable( GL_LIGHT2 );
   */
 }
+// -------------------------------------------------------------------------
+void EffectLights()
+{
+  if (mangoAct)
+  {
+    glLightfv(GL_LIGHT1, GL_POSITION, light1Pos);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, light1Diff);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, light1Spec);
+    glLightfv(GL_LIGHT1, GL_SHININESS, light1Diff);
+    glEnable(GL_LIGHT1);
+  }
+  else
+  {
+    glDisable(GL_LIGHT1);
+  }
 
+  if (guaranaAct)
+  {
+    glLightfv(GL_LIGHT2, GL_POSITION, light2Pos);
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, light2Diff);
+    glLightfv(GL_LIGHT2, GL_SPECULAR, light2Spec);
+    glLightfv(GL_LIGHT2, GL_SHININESS, light2Diff);
+    glEnable(GL_LIGHT2);
+  }
+  else
+  {
+    glDisable(GL_LIGHT2);
+  }
+
+  if (ancientAct)
+  {
+    glLightfv(GL_LIGHT3, GL_POSITION, light3Pos);
+    glLightfv(GL_LIGHT3, GL_DIFFUSE, light3Diff);
+    glLightfv(GL_LIGHT3, GL_SPECULAR, light3Spec);
+    glLightfv(GL_LIGHT3, GL_SHININESS, light3Diff);
+    glEnable(GL_LIGHT3);
+  }
+  else
+  {
+    glDisable(GL_LIGHT3);
+  }
+}
 // -------------------------------------------------------------------------
 void displayCbk()
 {
@@ -330,24 +375,50 @@ void displayCbk()
 
   myScenary->DrawScenary();
   mySnake->Draw();
-  if(mySnake->Eat(currentFruit->getCoordinates()))
+  if (mySnake->Die(dx, dy, boundaries) && play)
+  {
+    std::vector<float> reboot = mySnake->getHead();
+    myCamera.move(Vector(-1 * reboot[0], -1 * reboot[1], 0));
+    myCamera.rotY(-1 * (90 - rotA));
+    rotA = 90;
+    play = false;
+    points = 0;
+    delete (mySnake);
+    mySnake = new Snake();
+    dx = 1;
+    dy = 0.0;
+    velocity = 1;
+  }
+  if (mySnake->Eat(currentFruit->getCoordinates()))
   {
     points += currentFruit->getPoints();
     delete (currentFruit);
     currentFruit = new Fruit(0);
     currentFruit->Spawn(boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
-
   }
-  else if(mySnake->Eat(currentFruit->getCoordinates()))
+  else if (mySnake->Eat(specialFruit->getCoordinates()))
   {
+    if (specialFruit->getPowerClass() == 1)
+    {
+      mangoAct = true;
+    }
+    else if (specialFruit->getPowerClass() == 2)
+    {
+      guaranaAct = true;
+    }
+    else if (specialFruit->getPowerClass() == 3)
+    {
+      ancientAct = true;
+    }
     points += specialFruit->getPoints();
+    velocity += 0.2;
     fruitTimeout = std::chrono::high_resolution_clock::now();
     //TODO LIGHTS WITH COLOR
     delete (specialFruit);
     specialFruit = new Fruit();
     specialFruit->Spawn(boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
   }
-  if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fruitTimeout).count() >= 15000)
+  if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fruitTimeout).count() >= 20000)
   {
     fruitTimeout = std::chrono::high_resolution_clock::now();
     delete (specialFruit);
@@ -361,7 +432,7 @@ void displayCbk()
 
   currentFruit->Draw();
   std::string msg = "Points: " + std::to_string(points);
-  outputText(20.0, 20.0, 1.0, 1.0, 1.0, GLUT_BITMAP_HELVETICA_10, msg.c_str());
+  outputText(20.0, 20.0, 1.0, 1.0, 1.0, GLUT_BITMAP_HELVETICA_18, msg.c_str());
 
   // Finish
   glutSwapBuffers();
@@ -372,14 +443,18 @@ void displayCbk()
 // -------------------------------------------------------------------------
 void idleCbk()
 {
-  if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fpsClock).count() >= 1000)
+  if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - fpsClock).count() >= 100)
   {
-    std::cout << "FPS: " << fpsCounter << std::endl;
-    fpsClock = std::chrono::high_resolution_clock::now();
-    fpsCounter = 0;
-    std::cout << "Degrees: [" << rotA << "] Delta X: [" << dx << "] Delta Y: [" << dy << "]\n";
-    myCamera.forward(0.5);
-    mySnake->Move(dx, dy);
+    std::cout <<"Hello There! \n";
+    if (play)
+    {
+      std::cout << "FPS: " << fpsCounter << std::endl;
+      fpsClock = std::chrono::high_resolution_clock::now();
+      fpsCounter = 0;
+      std::cout << "Degrees: [" << rotA << "] Delta X: [" << dx << "] Delta Y: [" << dy << "]\n";
+      myCamera.move(Vector(dx, dy, 0));
+      mySnake->Move(dx, dy);
+    }
   }
   else
   {
@@ -429,25 +504,25 @@ void CalcDeltas()
 {
   if (rotA <= 90)
   {
-    dx = std::cos((90 - rotA) * _PI_180) * 0.5;
-    dy = std::sin((90 - rotA) * _PI_180) * 0.5;
+    dx = std::cos((90 - rotA) * _PI_180) * (0.1 + velocity);
+    dy = std::sin((90 - rotA) * _PI_180) * (0.1 + velocity);
   }
   else if (rotA <= 180)
   {
     float intAngle = 90 - (180 - rotA);
-    dx = std::cos(intAngle * _PI_180) * 0.5;
-    dy = std::sin(intAngle * _PI_180) * -1 * 0.5;
+    dx = std::cos(intAngle * _PI_180) * (0.1 + velocity);
+    dy = std::sin(intAngle * _PI_180) * -1 * (0.1 + velocity);
   }
   else if (rotA <= 270)
   {
-    dx = std::cos((270 - rotA) * _PI_180) * -1 * 0.5;
-    dy = std::sin((270 - rotA) * _PI_180) * -1 * 0.5;
+    dx = std::cos((270 - rotA) * _PI_180) * -1 * (0.1 + velocity);
+    dy = std::sin((270 - rotA) * _PI_180) * -1 * (0.1 + velocity);
   }
   else if (rotA <= 360)
   {
     float intAngle = 90 - (360 - rotA);
-    dx = std::cos(intAngle * _PI_180) * -1 * 0.5;
-    dy = std::sin(intAngle * _PI_180) * 0.5;
+    dx = std::cos(intAngle * _PI_180) * -1 * (0.1 + velocity);
+    dy = std::sin(intAngle * _PI_180) * (0.1 + velocity);
   }
 }
 // -------------------------------------------------------------------------
@@ -518,14 +593,14 @@ void keyboardCbk(unsigned char key, int x, int y)
   case 'p':
   case 'P':
   {
-    points++;
+    play = true;
     glutPostRedisplay();
   }
   break;
   case 'o':
   case 'O':
   {
-    myStar->stopAnimation();
+    mangoAct = mangoAct ? false : true;
     glutPostRedisplay();
   }
   break;
