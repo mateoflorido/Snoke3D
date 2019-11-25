@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------
-// @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
+// @author Mateo Florido Sanchez (floridom@javeriana.edu.co)
 // -------------------------------------------------------------------------
 
 #include "Snake.h"
@@ -71,15 +71,7 @@ void Snake::
     for (int i = 0; i < this->m_Body.size(); i += 2)
     {
         glPushMatrix();
-        if (i == 0)
-        {
-            glColor3f(1.0, 0.0, 0.0);
-        }
-        else
-        {
-            glColor3fv(qaSnake);
-        }
-
+        glColor3fv(qaSnake);
         glTranslatef(this->m_Body[i], this->m_Body[i + 1], 0);
         glutSolidSphere(1, 20, 20);
         glPopMatrix();
@@ -91,15 +83,19 @@ bool Snake::
     Eat(std::vector<float> fruit)
 {
     float distance = (this->m_Body[0] - fruit[0]) *
-                     (this->m_Body[0] - fruit[0]) +
+                         (this->m_Body[0] - fruit[0]) +
                      (this->m_Body[1] - fruit[1]) *
-                     (this->m_Body[1] - fruit[1]);
+                         (this->m_Body[1] - fruit[1]);
     if (distance == 4)
+    {
+        this->Grow();
         return true;
+    }
     else if (distance > 4)
         return false;
     else
     {
+        this->Grow();
         return true;
     }
 }
@@ -108,13 +104,14 @@ bool Snake::
     Itself()
 {
     float distance;
-    for (int i = 2; i < this->m_Body.size(); i += 2)
+    for (int i = 4; i < this->m_Body.size(); i += 2)
     {
         distance = (this->m_Body[0] - this->m_Body[i]) *
-                   (this->m_Body[0] - this->m_Body[i]) +
+                       (this->m_Body[0] - this->m_Body[i]) +
                    (this->m_Body[1] - this->m_Body[i + 1]) *
-                   (this->m_Body[1] - this->m_Body[i + 1]);
+                       (this->m_Body[1] - this->m_Body[i + 1]);
         if (distance > 4)
+
             return false;
         else
         {
@@ -174,13 +171,12 @@ bool Snake::
         if (checkX >= boundaries[3])
             return true;
     }
-    if(!firstRun)
+    if (!firstRun)
         return (Itself());
     else
     {
         return false;
     }
-    
 }
 
 // eof - Snake.cxx

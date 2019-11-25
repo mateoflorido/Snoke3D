@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------
-// @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
+// @author Mateo Florido Sanchez (floridom@javeriana.edu.co)
 // -------------------------------------------------------------------------
 
 #include "Scenary.h"
@@ -47,7 +47,7 @@ CreateLab(int offset)
         glPushMatrix();
         glColor3f(1.0,1.0,1.0);
         glTranslatef(-50.0,0.0,2.0);
-        glScalef(1.0,100.0,6.0);
+        glScalef(1.0,100.0,10.0);
         glutSolidCube(1);
         glPopMatrix();
         
@@ -55,7 +55,7 @@ CreateLab(int offset)
         glPushMatrix();
         glColor3f(1.0,1.0,1.0);
         glTranslatef(50.0,0.0,2.0);
-        glScalef(1.0,100.0,6.0);
+        glScalef(1.0,100.0,10.0);
         glutSolidCube(1);
         glPopMatrix();
 
@@ -63,7 +63,7 @@ CreateLab(int offset)
         glPushMatrix();
         glColor3f(1.0,1.0,1.0);
         glTranslatef(0.0,50.0,2.0);
-        glScalef(100.0,1.0,6.0);
+        glScalef(100.0,1.0,10.0);
         glutSolidCube(1);
         glPopMatrix();
 
@@ -71,7 +71,15 @@ CreateLab(int offset)
         glPushMatrix();
         glColor3f(1.0,1.0,1.0);
         glTranslatef(0.0,-50.0,2.0);
-        glScalef(100.0,1.0,6.0);
+        glScalef(100.0,1.0,10.0);
+        glutSolidCube(1);
+        glPopMatrix();
+
+        //Ceiling
+        glPushMatrix();
+        glColor3f(1.0,1.0,1.0);
+        glTranslatef(0,0.0,9.0);
+        glScalef(100.0,100.0,1.0);
         glutSolidCube(1);
         glPopMatrix();
 
@@ -106,5 +114,4 @@ CheckIntegrity(float x, float y)
                     return true;
     return false;
 }
-
 // eof - Scenary.cxx

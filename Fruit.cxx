@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------
-// @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
+// @author Mateo Florido Sanchez (floridom@javeriana.edu.co)
 // -------------------------------------------------------------------------
 
 #include "Fruit.h"
@@ -16,7 +16,7 @@ Fruit::
 {
     std::random_device rD;
     std::mt19937 gen(rD());
-    std::uniform_int_distribution<> dist(0, 3);
+    std::uniform_int_distribution<> dist(1, 3);
     this->powerClass = dist(gen);
     if (this->powerClass == 0)
         this->points = 10;
@@ -52,8 +52,8 @@ void Fruit::
 {
     std::random_device rD;
     std::mt19937 gen(rD());
-    std::uniform_real_distribution<float> distX(xmin + 0.5, xmax - 0.5);
-    std::uniform_real_distribution<float> distY(ymin + 0.5, ymax - 0.5);
+    std::uniform_real_distribution<float> distX(xmin + 2, xmax - 2);
+    std::uniform_real_distribution<float> distY(ymin + 2, ymax - 2);
     this->m_Coordinates.push_back(distX(gen));
     this->m_Coordinates.push_back(distY(gen));
 }

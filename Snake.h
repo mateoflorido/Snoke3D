@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------------
-// @author Leonardo Florez-Valencia (florez-l@javeriana.edu.co)
+// @author Mateo Florido Sanchez (floridom@javeriana.edu.co)
 // -------------------------------------------------------------------------
 #ifndef __Snake__h__
 #define __Snake__h__
